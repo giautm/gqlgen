@@ -26,7 +26,8 @@ func New(dir string) (*Rewriter, error) {
 		return nil, fmt.Errorf("import path not found for directory: %q", dir)
 	}
 	pkgs, err := packages.Load(&packages.Config{
-		Mode: packages.NeedSyntax | packages.NeedTypes,
+		Mode:       packages.NeedSyntax | packages.NeedTypes,
+		BuildFlags: []string{"-tags", "ent"},
 	}, importPath)
 	if err != nil {
 		return nil, err
