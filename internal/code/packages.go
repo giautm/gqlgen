@@ -91,7 +91,7 @@ func (p *Packages) LoadAll(importPaths ...string) []*packages.Package {
 
 	if len(missing) > 0 {
 		p.numLoadCalls++
-		pkgs, err := packages.Load(&packages.Config{Mode: mode}, missing...)
+		pkgs, err := packages.Load(&packages.Config{Mode: mode, BuildFlags: []string{"-tags", "ent"}}, missing...)
 		if err != nil {
 			p.loadErrors = append(p.loadErrors, err)
 		}
@@ -140,7 +140,7 @@ func (p *Packages) LoadWithTypes(importPath string) *packages.Package {
 	pkg := p.Load(importPath)
 	if pkg == nil || pkg.TypesInfo == nil {
 		p.numLoadCalls++
-		pkgs, err := packages.Load(&packages.Config{Mode: mode}, importPath)
+		pkgs, err := packages.Load(&packages.Config{Mode: mode, BuildFlags: []string{"-tags", "ent"}}, importPath)
 		if err != nil {
 			p.loadErrors = append(p.loadErrors, err)
 			return nil
@@ -173,7 +173,7 @@ func (p *Packages) NameForPackage(importPath string) string {
 	if pkg == nil {
 		// otherwise do a name only lookup for it but don't put it in the package cache.
 		p.numNameCalls++
-		pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedName}, importPath)
+		pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedName, BuildFlags: []string{"-tags", "ent"}}, importPath)
 		if err != nil {
 			p.loadErrors = append(p.loadErrors, err)
 		} else {
