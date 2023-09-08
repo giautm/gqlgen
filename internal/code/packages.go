@@ -19,7 +19,7 @@ var (
 	modInfo *debug.BuildInfo
 )
 
-var mode = packages.NeedName |
+var defaultMode = packages.NeedName |
 	packages.NeedFiles |
 	packages.NeedImports |
 	packages.NeedTypes |
@@ -36,6 +36,7 @@ type (
 		importToName map[string]string
 		loadErrors   []error
 		buildFlags   []string
+		mode         packages.LoadMode
 
 		numLoadCalls int // stupid test steam. ignore.
 		numNameCalls int // stupid test steam. ignore.
@@ -43,6 +44,13 @@ type (
 	// Option is a function that can be passed to NewPackages to configure the package loader
 	Option func(p *Packages)
 )
+
+// WithMode sets the load mode for the packages.Load call
+func WithMode(mode packages.LoadMode) func(p *Packages) {
+	return func(p *Packages) {
+		p.mode = mode
+	}
+}
 
 // WithBuildTags adds build tags to the packages.Load call
 func WithBuildTags(tags ...string) func(p *Packages) {
@@ -54,7 +62,7 @@ func WithBuildTags(tags ...string) func(p *Packages) {
 // NewPackages creates a new packages cache
 // It will load all packages in the current module, and any packages that are passed to Load or LoadAll
 func NewPackages(opts ...Option) *Packages {
-	p := &Packages{}
+	p := &Packages{mode: defaultMode}
 	for _, opt := range opts {
 		opt(p)
 	}
@@ -113,7 +121,7 @@ func (p *Packages) LoadAll(importPaths ...string) []*packages.Package {
 	if len(missing) > 0 {
 		p.numLoadCalls++
 		pkgs, err := packages.Load(&packages.Config{
-			Mode:       mode,
+			Mode:       p.mode,
 			BuildFlags: p.buildFlags,
 		}, missing...)
 		if err != nil {
@@ -165,7 +173,7 @@ func (p *Packages) LoadWithTypes(importPath string) *packages.Package {
 	if pkg == nil || pkg.TypesInfo == nil {
 		p.numLoadCalls++
 		pkgs, err := packages.Load(&packages.Config{
-			Mode:       mode,
+			Mode:       p.mode,
 			BuildFlags: p.buildFlags,
 		}, importPath)
 		if err != nil {
