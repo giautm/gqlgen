@@ -10,18 +10,11 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/99designs/gqlgen/internal/code"
-
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/imports"
+
+	"github.com/99designs/gqlgen/internal/code"
 )
-
-type visitFn func(node ast.Node)
-
-func (fn visitFn) Visit(node ast.Node) ast.Visitor {
-	fn(node)
-	return fn
-}
 
 // Prune removes any unused imports
 func Prune(filename string, src []byte, packages *code.Packages) ([]byte, error) {
@@ -42,18 +35,18 @@ func Prune(filename string, src []byte, packages *code.Packages) ([]byte, error)
 	if err := printConfig.Fprint(&buf, fset, file); err != nil {
 		return nil, err
 	}
-
-	return imports.Process(filename, buf.Bytes(), &imports.Options{FormatOnly: true, Comments: true, TabIndent: true, TabWidth: 8})
+	return imports.Process(filename, buf.Bytes(), &imports.Options{
+		Comments:   true,
+		FormatOnly: true,
+		TabIndent:  true,
+		TabWidth:   8,
+	})
 }
 
 func getUnusedImports(file ast.Node, packages *code.Packages) map[string]string {
 	imported := map[string]*ast.ImportSpec{}
 	used := map[string]bool{}
-
-	ast.Walk(visitFn(func(node ast.Node) {
-		if node == nil {
-			return
-		}
+	ast.Inspect(file, func(node ast.Node) bool {
 		switch v := node.(type) {
 		case *ast.ImportSpec:
 			if v.Name != nil {
@@ -79,12 +72,11 @@ func getUnusedImports(file ast.Node, packages *code.Packages) map[string]string 
 			}
 			used[xident.Name] = true
 		}
-	}), file)
-
+		return true
+	})
 	for pkg := range used {
 		delete(imported, pkg)
 	}
-
 	unusedImport := map[string]string{}
 	for pkg, is := range imported {
 		if !used[pkg] && pkg != "_" && pkg != "." {
@@ -95,6 +87,5 @@ func getUnusedImports(file ast.Node, packages *code.Packages) map[string]string 
 			unusedImport[strings.Trim(is.Path.Value, `"`)] = name
 		}
 	}
-
 	return unusedImport
 }
