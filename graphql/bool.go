@@ -20,8 +20,6 @@ func UnmarshalBoolean(v any) (bool, error) {
 		return v != 0, nil
 	case bool:
 		return v, nil
-	case nil:
-		return false, nil
 	default:
 		return false, fmt.Errorf("%T is not a bool", v)
 	}

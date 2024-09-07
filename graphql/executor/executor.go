@@ -84,6 +84,7 @@ func (e *Executor) CreateOperationContext(
 
 	var err error
 	rc.Variables, err = validator.VariableValues(e.es.Schema(), rc.Operation, params.Variables)
+
 	if err != nil {
 		gqlErr, ok := err.(*gqlerror.Error)
 		if ok {

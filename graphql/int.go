@@ -23,8 +23,6 @@ func UnmarshalInt(v any) (int, error) {
 		return int(v), nil
 	case json.Number:
 		return strconv.Atoi(string(v))
-	case nil:
-		return 0, nil
 	default:
 		return 0, fmt.Errorf("%T is not an int", v)
 	}
@@ -46,8 +44,6 @@ func UnmarshalInt64(v any) (int64, error) {
 		return v, nil
 	case json.Number:
 		return strconv.ParseInt(string(v), 10, 64)
-	case nil:
-		return 0, nil
 	default:
 		return 0, fmt.Errorf("%T is not an int", v)
 	}
@@ -77,8 +73,6 @@ func UnmarshalInt32(v any) (int32, error) {
 			return 0, err
 		}
 		return int32(iv), nil
-	case nil:
-		return 0, nil
 	default:
 		return 0, fmt.Errorf("%T is not an int", v)
 	}
